@@ -104,26 +104,19 @@ defmodule InfinityChange do
       res
     else
       [h | t] = res
-
-      [[h, generate_possibilities(h)] | [generate_possibilities(t)]]
+      [[h, generate_possibilities(h)] | generate_possibilities(t)]
     end
   end
 
   def generate_possibilities([], _opts), do: []
 
-  def generate_possibilities([h | t], opts) do
-    l_length = length([h | t])
-    append_value = Keyword.get(opts, :append, 0)
+  def generate_possibilities([h | t], _opts) do
     [l_coin | _coins] = Const.get(:coins)
     # Ordenar el output de datos
     if can_subdivide?(t, l_coin) do
-      unless l_length > 1 do
-        [[h, generate_possibilities(h)] | [generate_possibilities(t)]]
-      else
-        [[h, generate_possibilities(h)] | [generate_possibilities(t)]]
-      end
+      [[h, generate_possibilities(h)] | generate_possibilities(t)]
     else
-      [h, generate_possibilities(h)]
+      [[h, generate_possibilities(h)]]
     end
   end
 
