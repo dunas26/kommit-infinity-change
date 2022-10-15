@@ -7,7 +7,6 @@ defmodule InfinityChange do
 
   Compute coin change. This modules computes how many possibilites are when returning a coin
   """
-
   @spec get_lower_coins(integer(), list()) :: [integer()]
   defp get_lower_coins(value, opts) do
     ignore_equal = Keyword.get(opts, :ignore_equal, false)
@@ -50,41 +49,6 @@ defmodule InfinityChange do
     List.duplicate(coin, times)
   end
 
-  @spec calculate(integer()) :: [[integer()]]
-  defp calculate(change) when change <= 0, do: []
-
-  defp calculate(change) do
-    max =
-      change
-      |> generate_max_result(ignore_equal: false)
-
-    (subdivide(max) ++ subdivide(max, flip: true))
-    |> Enum.uniq()
-  end
-
-  defp subdivide(result, opts \\ [flip: false]) do
-    [lowest_coin | _coins] = Const.get(:coins)
-
-    result = if Keyword.get(opts, :flip, false), do: result |> sort_coins, else: result
-    idx = Enum.find_index(result, fn x -> x > lowest_coin end)
-
-    unless idx == nil do
-      value = Enum.at(result, idx)
-
-      next_list =
-        List.replace_at(result, idx, generate_max_result(value, ignore_equal: true))
-        |> List.flatten()
-
-      [result |> sort_coins | subdivide(next_list, opts)]
-    else
-      [result]
-    end
-  end
-
-  def subdivide_testing(result) do
-    subdivide(result) |> Enum.reverse()
-  end
-
   defp sort_coins(coin_list) do
     Enum.sort(coin_list, fn x, y -> x > y end)
   end
@@ -93,11 +57,81 @@ defmodule InfinityChange do
   def compute_coin_change(change) when change <= 0, do: []
 
   def compute_coin_change(change) do
-    calculate(change)
+    max = generate_max_result(change, ignore_equal: true)
   end
 
-  def pretty_print(list) when is_list(list) do
-    string_list = Enum.map(list, fn x -> Enum.join(x, ", ") end)
-    Enum.each(string_list, fn x -> IO.puts(x) end)
+  def can_subdivide?(num, pivot_coin) when is_number(num), do: num > pivot_coin
+
+  def can_subdivide?(list, pivot_coin) when is_list(list) do
+    if Enum.all?(list, &is_number(&1)) do
+      Enum.any?(list, fn x -> x > pivot_coin end)
+    else
+      [head | tail] = list
+
+      unless Enum.empty?(tail) do
+        can_subdivide?(head, pivot_coin) or can_subdivide?(tail, pivot_coin)
+      else
+        can_subdivide?(head, pivot_coin)
+      end
+    end
+  end
+
+  def solve(num) when is_number(num), do: solve([num])
+
+  def solve([]), do: []
+
+  def solve(list) when is_list(list) do
+    [l_coin | _coins] = Const.get(:coins)
+    idx = Enum.find_index(list, &can_subdivide?(&1, l_coin))
+
+    unless !idx do
+      el = Enum.at(list, idx)
+      res = generate_max_result(el, ignore_equal: true)
+      List.replace_at(list, idx, res) |> List.flatten()
+    else
+      []
+    end
+  end
+
+  def generate_possibilities(num, _opts \\ [append: 0]) when num == 1, do: 1
+
+  def generate_possibilities(num, opts) when is_number(num) do
+    [l_coin | _coins] = Const.get(:coins)
+    append_value = Keyword.get(opts, :append, 2)
+    res = solve_coin(num)
+
+    unless can_subdivide?(res, l_coin) do
+      res
+    else
+      [h | t] = res
+
+      [[h, generate_possibilities(h)] | [generate_possibilities(t)]]
+    end
+  end
+
+  def generate_possibilities([], _opts), do: []
+
+  def generate_possibilities([h | t], opts) do
+    l_length = length([h | t])
+    append_value = Keyword.get(opts, :append, 0)
+    [l_coin | _coins] = Const.get(:coins)
+    # Ordenar el output de datos
+    if can_subdivide?(t, l_coin) do
+      unless l_length > 1 do
+        [[h, generate_possibilities(h)] | [generate_possibilities(t)]]
+      else
+        [[h, generate_possibilities(h)] | [generate_possibilities(t)]]
+      end
+    else
+      [h, generate_possibilities(h)]
+    end
+  end
+
+  @spec solve_coin(integer()) :: list()
+  def solve_coin(coin) when coin <= 0, do: []
+  def solve_coin(coin) when coin == 1, do: [1]
+
+  def solve_coin(coin) do
+    generate_max_result(coin, ignore_equal: true)
   end
 end
