@@ -1,5 +1,4 @@
 defmodule InfinityChange do
-  import InfinityChange.Constants, only: [values: 0]
   alias InfinityChange.Constants, as: Const
 
   @moduledoc """
@@ -12,7 +11,7 @@ defmodule InfinityChange do
     ignore_equal = Keyword.get(opts, :ignore_equal, false)
 
     Enum.filter(
-      Const.get(:coins),
+      Const.get_coins(),
       fn
         x when ignore_equal -> x < value
         x -> x <= value
@@ -26,7 +25,7 @@ defmodule InfinityChange do
   end
 
   @spec generate_raw_max_result(integer(), list()) :: [integer()]
-  defp generate_raw_max_result(change, _opts) when change == 0, do: nil
+  defp generate_raw_max_result(0, _opts), do: nil
 
   defp generate_raw_max_result(change, opts) do
     ignore_equal = Keyword.get(opts, :ignore_equal, false)
@@ -81,7 +80,7 @@ defmodule InfinityChange do
   def solve([]), do: []
 
   def solve(list) when is_list(list) do
-    [l_coin | _coins] = Const.get(:coins)
+    [l_coin | _coins] = Const.get_coins()
     idx = Enum.find_index(list, &can_subdivide?(&1, l_coin))
 
     unless !idx do
@@ -93,11 +92,12 @@ defmodule InfinityChange do
     end
   end
 
-  def generate_possibilities(num, _opts \\ [append: 0]) when num == 1, do: 1
+  def generate_possibilities(1), do: 1
 
-  def generate_possibilities(num, opts) when is_number(num) do
-    [l_coin | _coins] = Const.get(:coins)
-    append_value = Keyword.get(opts, :append, 2)
+  def generate_possibilities([]), do: []
+
+  def generate_possibilities(num) when is_number(num) do
+    [l_coin | _coins] = Const.get_coins()
     res = solve_coin(num)
 
     unless can_subdivide?(res, l_coin) do
@@ -108,10 +108,8 @@ defmodule InfinityChange do
     end
   end
 
-  def generate_possibilities([], _opts), do: []
-
-  def generate_possibilities([h | t], _opts) do
-    [l_coin | _coins] = Const.get(:coins)
+  def generate_possibilities([h | t]) do
+    [l_coin | _coins] = Const.get_coins()
     # Ordenar el output de datos
     if can_subdivide?(t, l_coin) do
       [[h, generate_possibilities(h)] | generate_possibilities(t)]
@@ -122,7 +120,7 @@ defmodule InfinityChange do
 
   @spec solve_coin(integer()) :: list()
   def solve_coin(coin) when coin <= 0, do: []
-  def solve_coin(coin) when coin == 1, do: [1]
+  def solve_coin(1), do: [1]
 
   def solve_coin(coin) do
     generate_max_result(coin, ignore_equal: true)
