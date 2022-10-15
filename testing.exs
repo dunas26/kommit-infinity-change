@@ -15,7 +15,15 @@ IEx.configure(inspect: [charlists: :as_lists])
 # [] |> IO.inspect(charlists: :as_lists) |> InfinityChange.solve |> IO.inspect(charlists: :as_lists)
 
 # 5 |> IO.inspect(charlists: :as_lists) |> InfinityChange.solve_recursively |> IO.inspect
-n = [10, 10, 10]
+n = 5
+value = [n, InfinityChange.generate_possibilities(n)] |> IO.inspect(charlists: :as_lists)
+n = 10
+value = [n, InfinityChange.generate_possibilities(n)] |> IO.inspect(charlists: :as_lists)
+n = 25
+value = [n, InfinityChange.generate_possibilities(n)] |> IO.inspect(charlists: :as_lists)
+n = 50
+value = [n, InfinityChange.generate_possibilities(n)] |> IO.inspect(charlists: :as_lists)
+n = 100
 value = [n, InfinityChange.generate_possibilities(n)] |> IO.inspect(charlists: :as_lists)
 # 10 |> IO.inspect(charlists: :as_lists) |> InfinityChange.generate_possibilities |> IO.inspect
 
