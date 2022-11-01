@@ -1,128 +1,148 @@
 defmodule InfinityChange do
-  alias InfinityChange.Constants, as: Const
+  alias InfinityChange.Generation
+  alias InfinityChange.DataProvider
+  alias InfinityChange.Merging
+  alias InfinityChange.Compose
 
   @moduledoc """
   # InfinityChange Documentation
 
-  Compute coin change. This modules computes how many possibilites are when returning a coin
+    Compute coin change. This modules computes how many possibilites are there in order to return a coin.
+
+    This is done by computing all the possibilities for the different coin values.
+    For instance:
+
+    `[a, [b, c, d]]`
+
+    This data structure is called a base, we have a base when:
+    - The total length is 2
+    - The first element of the list is a number
+    - The second element of the list is a list containing all the possibilities
+
+    This means that **a** can be represented as **b**, **c** or **d**
+
+    After having all possibilities compiled, we scroll to the parsing process where we take all our raw possibility, called a possibility mapping, and parse it into a combinable state like so:
+
+    Let **10** as an input example.
+
+    The possibility map of 10 contains also the possibility map for the number 5 as so:
+
+    `10 -> [10, [[5, [1,1,1,1,1]], [5, 1,1,1,1,1]]]`
+
+    better expressed as:
+
+    ```
+    10
+    [
+      [5, [1,1,1,1,1]],
+      [5, [1,1,1,1,1]]
+    ]
+    ```
+
+    If we were to combine this right away we would end up with ```10,5,1,1,1,1,1``` like so
+
+    When parsing this input we end up with this:
+
+    ```
+    10,
+    [
+      [5,5],
+      [5,1,1,1,1,1],
+      [1,1,1,1,1,1,1,1,1,1]
+    ]
+    ```
+
+    This is the result from combining the each index of `[5, [1,1,1,1,1]]` with each index of `[5, [1,1,1,1,1]]`.
+
+    After parsing the possibility map, we are now in a combinable state, where we can combine our base number and our possibilities recursively.
+
+    The final result of this combination is `[10, [5,5], [5,1,1,1,1,1], [1,1,1,1,1,1,1,1,1,1]]`
+
+    An extra step is made in order to add missing coins in some cases. It's mainly a repetition of coins that when added together result in the original change.
+
+    Take for example **50**:
+
+    We know that 50 might be straight forward value to represent, but there's a simple catch.
+
+    Subdividing 50 gives as a result `[25, 25]`
+    But, when we subdivide 25 we end up with this result `[5, 10, 10]`
+
+    Nothing is wrong with it, but if we add up together both 25s we discover a problem.
+
+    `[5, 10, 10, 5, 10, 10]`
+
+    There is still a 10 that can be added up by joining both 5s together.
+
+    Based on our possibility mapping, this case is unlikely to happen, because 25 only solves to 5, 10, 10, and we can't merge both 25s together during generation.
+
+    So we add up another process to generate this repetition of coins adding effectively the missing possibility.
+
+    ```
+    50
+    25, 25
+    5, 10, 10, 5, 10, 10
+    -> 10, 10, 10, 10, 10 # added afterwards
+    5, 5, 5, ...
+    ```
+    and so on.
   """
-  @spec get_lower_coins(integer(), list()) :: [integer()]
-  defp get_lower_coins(value, opts) do
-    ignore_equal = Keyword.get(opts, :ignore_equal, false)
 
-    Enum.filter(
-      Const.get_coins(),
-      fn
-        x when ignore_equal -> x < value
-        x -> x <= value
-      end
-    )
+  @spec try_join(list()) :: String.t()
+  defp try_join(list) when is_list(list) do
+    Enum.join(list, ", ")
   end
 
-  @spec generate_max_result(integer()) :: [integer()]
-  defp generate_max_result(change, opts \\ [ignore_equal: false]) do
-    generate_raw_max_result(change, opts) |> List.flatten()
+  defp try_join(x), do: "#{x}"
+
+  @spec present_results(integer(), list()) :: term()
+  defp present_results(_change, list) do
+    Enum.each(list, &IO.puts(try_join(&1)))
   end
 
-  @spec generate_raw_max_result(integer(), list()) :: [integer()]
-  defp generate_raw_max_result(0, _opts), do: nil
-
-  defp generate_raw_max_result(change, opts) do
-    ignore_equal = Keyword.get(opts, :ignore_equal, false)
-    lower_coins = get_lower_coins(change, ignore_equal: ignore_equal)
-    highest_coin = List.last(lower_coins)
-    n_coins = change / highest_coin
-    whole_coins = trunc(n_coins)
-    part_coins = n_coins - whole_coins
-
-    if abs(part_coins) > 0.00001 do
-      rest = round(part_coins * highest_coin)
-      [generate_max_result(rest) | generate_coins(highest_coin, whole_coins)]
-    else
-      generate_coins(highest_coin, whole_coins)
-    end
+  @doc """
+  This function generate a coin change an then outputs to the STDIN
+  """
+  @spec present_coin_change(integer()) :: term()
+  def present_coin_change(change) do
+    coin_change = compute_coin_change(change)
+    present_results(change, coin_change)
   end
 
-  @spec generate_coins(integer(), integer()) :: [integer()]
-  defp generate_coins(coin, times) do
-    List.duplicate(coin, times)
-  end
+  @spec try_flatten(list() | number()) :: list()
+  defp try_flatten(n) when is_number(n), do: n
+  defp try_flatten(list) when is_list(list), do: List.flatten(list)
 
-  defp sort_coins(coin_list) do
-    Enum.sort(coin_list, fn x, y -> x > y end)
-  end
+  @doc """
+  Computes any coin change into a resulting array.
 
+  It accepts any possitive integer.
+  """
   @spec compute_coin_change(integer()) :: [[integer()]]
   def compute_coin_change(change) when change <= 0, do: []
 
   def compute_coin_change(change) do
-    max = generate_max_result(change, ignore_equal: true)
-  end
+    # Generate possibility map
+    result = Generation.map_possibilities(change)
+    # Get variety
+    variety = DataProvider.get_coin_variety(result)
+    # Perform a map parsing
+    parse_result = Merging.parse(result, variety)
+    # We now have a combinable state
 
-  def can_subdivide?(num, pivot_coin) when is_number(num), do: num > pivot_coin
+    raw_compose_state = Compose.do_compose(parse_result)
+    # Optional formatting
+    # Generate periodical coins for missing spots
+    periodical = Generation.generate_periodical_coins(change)
+    # Merge periodical coin states with the compose state
+    final_state =
+      (periodical ++ raw_compose_state)
+      |> Enum.uniq()
+      |> Enum.map(&try_flatten(&1))
+      |> Enum.sort(&(&1 > &2))
 
-  def can_subdivide?(list, pivot_coin) when is_list(list) do
-    if Enum.all?(list, &is_number(&1)) do
-      Enum.any?(list, fn x -> x > pivot_coin end)
-    else
-      [head | tail] = list
-
-      unless Enum.empty?(tail) do
-        can_subdivide?(head, pivot_coin) or can_subdivide?(tail, pivot_coin)
-      else
-        can_subdivide?(head, pivot_coin)
-      end
-    end
-  end
-
-  def solve(num) when is_number(num), do: solve([num])
-
-  def solve([]), do: []
-
-  def solve(list) when is_list(list) do
-    [l_coin | _coins] = Const.get_coins()
-    idx = Enum.find_index(list, &can_subdivide?(&1, l_coin))
-
-    unless !idx do
-      el = Enum.at(list, idx)
-      res = generate_max_result(el, ignore_equal: true)
-      List.replace_at(list, idx, res) |> List.flatten()
-    else
-      []
-    end
-  end
-
-  def generate_possibilities(1), do: 1
-
-  def generate_possibilities([]), do: []
-
-  def generate_possibilities(num) when is_number(num) do
-    [l_coin | _coins] = Const.get_coins()
-    res = solve_coin(num)
-
-    unless can_subdivide?(res, l_coin) do
-      res
-    else
-      [h | t] = res
-      [[h, generate_possibilities(h)] | generate_possibilities(t)]
-    end
-  end
-
-  def generate_possibilities([h | t]) do
-    [l_coin | _coins] = Const.get_coins()
-    # Ordenar el output de datos
-    if can_subdivide?(t, l_coin) do
-      [[h, generate_possibilities(h)] | generate_possibilities(t)]
-    else
-      [[h, generate_possibilities(h)]]
-    end
-  end
-
-  @spec solve_coin(integer()) :: list()
-  def solve_coin(coin) when coin <= 0, do: []
-  def solve_coin(1), do: [1]
-
-  def solve_coin(coin) do
-    generate_max_result(coin, ignore_equal: true)
+    # Add whole coin change to the top of the output
+    if DataProvider.in_coins?(change) and not DataProvider.is_lowest_coin?(change),
+      do: [[change] | final_state],
+      else: final_state
   end
 end
