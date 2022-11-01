@@ -57,13 +57,16 @@ defmodule InfinityChange.Generation do
     n_coins = change / highest_coin
     whole_coins = trunc(n_coins)
     part_coins = n_coins - whole_coins
+    recurse_coin_result(part_coins, whole_coins, highest_coin)
+  end
 
-    if abs(part_coins) > 0.00001 do
-      rest = round(part_coins * highest_coin)
-      [generate_max_result(rest) | generate_coins(highest_coin, whole_coins)]
-    else
-      generate_coins(highest_coin, whole_coins)
-    end
+  @spec recurse_coin_result(number(), number(), number()) :: any()
+  defp recurse_coin_result(0.0, whole_coin, highest_coin),
+    do: generate_coins(highest_coin, whole_coin)
+
+  defp recurse_coin_result(part_coins, whole_coin, highest_coin) do
+    rest = round(part_coins * highest_coin)
+    [generate_max_result(rest) | generate_coins(highest_coin, whole_coin)]
   end
 
   @spec generate_coins(integer(), integer()) :: [integer()]
