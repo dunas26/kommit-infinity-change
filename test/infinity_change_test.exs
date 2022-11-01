@@ -30,12 +30,12 @@ defmodule InfinityChangeTest do
 
   test "returns a list with 2 lists, each containing two different coin possibilities" do
     assert InfinityChange.compute_coin_change(5) === [[5], [1, 1, 1, 1, 1]]
-    assert InfinityChange.compute_coin_change(6) === [[5, 1], [1, 1, 1, 1, 1, 1]]
-    assert InfinityChange.compute_coin_change(7) === [[5, 1, 1], [1, 1, 1, 1, 1, 1, 1]]
-    assert InfinityChange.compute_coin_change(8) === [[5, 1, 1, 1], [1, 1, 1, 1, 1, 1, 1, 1]]
+    assert InfinityChange.compute_coin_change(6) === [[1, 5], [1, 1, 1, 1, 1, 1]]
+    assert InfinityChange.compute_coin_change(7) === [[1, 1, 5], [1, 1, 1, 1, 1, 1, 1]]
+    assert InfinityChange.compute_coin_change(8) === [[1, 1, 1, 5], [1, 1, 1, 1, 1, 1, 1, 1]]
 
     assert InfinityChange.compute_coin_change(9) === [
-             [5, 1, 1, 1, 1],
+             [1, 1, 1, 1, 5],
              [1, 1, 1, 1, 1, 1, 1, 1, 1]
            ]
   end
@@ -43,12 +43,12 @@ defmodule InfinityChangeTest do
   test "returns a list with n lists, each containing more than 3 different coin possibilities" do
     assert Enum.member?(InfinityChange.compute_coin_change(10), [10])
     assert Enum.member?(InfinityChange.compute_coin_change(10), [5, 5])
-    assert Enum.member?(InfinityChange.compute_coin_change(10), [5, 1, 1, 1, 1, 1])
+    assert Enum.member?(InfinityChange.compute_coin_change(10), [1, 1, 1, 1, 1, 5])
     assert Enum.member?(InfinityChange.compute_coin_change(10), [1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
 
-    assert Enum.member?(InfinityChange.compute_coin_change(13), [10, 1, 1, 1])
-    assert Enum.member?(InfinityChange.compute_coin_change(13), [5, 5, 1, 1, 1])
-    assert Enum.member?(InfinityChange.compute_coin_change(13), [5, 1, 1, 1, 1, 1, 1, 1, 1])
+    assert Enum.member?(InfinityChange.compute_coin_change(13), [1, 1, 1, 10])
+    assert Enum.member?(InfinityChange.compute_coin_change(13), [1, 1, 1, 5, 5])
+    assert Enum.member?(InfinityChange.compute_coin_change(13), [1, 1, 1, 1, 1, 1, 1, 1, 5])
 
     assert Enum.member?(InfinityChange.compute_coin_change(13), [
              1,
@@ -66,10 +66,10 @@ defmodule InfinityChangeTest do
              1
            ])
 
-    assert Enum.member?(InfinityChange.compute_coin_change(15), [10, 5])
-    assert Enum.member?(InfinityChange.compute_coin_change(15), [10, 1, 1, 1, 1, 1])
-    assert Enum.member?(InfinityChange.compute_coin_change(15), [5, 5, 1, 1, 1, 1, 1])
-    assert Enum.member?(InfinityChange.compute_coin_change(15), [5, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+    assert Enum.member?(InfinityChange.compute_coin_change(15), [5, 10])
+    assert Enum.member?(InfinityChange.compute_coin_change(15), [1, 1, 1, 1, 1, 10])
+    assert Enum.member?(InfinityChange.compute_coin_change(15), [1, 1, 1, 1, 1, 5, 5])
+    assert Enum.member?(InfinityChange.compute_coin_change(15), [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5])
 
     assert Enum.member?(InfinityChange.compute_coin_change(15), [
              1,
@@ -89,12 +89,11 @@ defmodule InfinityChangeTest do
              1
            ])
 
-    assert Enum.member?(InfinityChange.compute_coin_change(18), [10, 5, 1, 1, 1])
-    assert Enum.member?(InfinityChange.compute_coin_change(18), [5, 5, 5, 1, 1, 1])
-    assert Enum.member?(InfinityChange.compute_coin_change(18), [5, 5, 1, 1, 1, 1, 1, 1, 1, 1])
+    assert Enum.member?(InfinityChange.compute_coin_change(18), [1, 1, 1, 5, 10])
+    assert Enum.member?(InfinityChange.compute_coin_change(18), [1, 1, 1, 5, 5, 5])
+    assert Enum.member?(InfinityChange.compute_coin_change(18), [1, 1, 1, 1, 1, 1, 1, 1, 5, 5])
 
     assert Enum.member?(InfinityChange.compute_coin_change(18), [
-             5,
              1,
              1,
              1,
@@ -107,28 +106,29 @@ defmodule InfinityChangeTest do
              1,
              1,
              1,
-             1
+             1,
+             5
            ])
 
-    assert Enum.member?(InfinityChange.compute_coin_change(24), [10, 10, 1, 1, 1, 1])
-    assert Enum.member?(InfinityChange.compute_coin_change(24), [10, 5, 5, 1, 1, 1, 1])
-    assert Enum.member?(InfinityChange.compute_coin_change(24), [5, 5, 5, 5, 1, 1, 1, 1])
+    assert Enum.member?(InfinityChange.compute_coin_change(24), [1, 1, 1, 1, 10, 10])
+    assert Enum.member?(InfinityChange.compute_coin_change(24), [1, 1, 1, 1, 5, 5, 10])
+    assert Enum.member?(InfinityChange.compute_coin_change(24), [1, 1, 1, 1, 5, 5, 5, 5])
 
     assert Enum.member?(InfinityChange.compute_coin_change(24), [
+             1,
+             1,
+             1,
+             1,
+             1,
+             1,
+             1,
+             1,
+             1,
              5,
              5,
-             5,
-             1,
-             1,
-             1,
-             1,
-             1,
-             1,
-             1,
-             1,
-             1
+             5
            ])
 
-    assert Enum.member?(InfinityChange.compute_coin_change(24), [10, 5, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+    assert Enum.member?(InfinityChange.compute_coin_change(24), [1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 10])
   end
 end
