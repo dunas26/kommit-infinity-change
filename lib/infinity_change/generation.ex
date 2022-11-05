@@ -1,6 +1,5 @@
 defmodule InfinityChange.Generation do
   alias InfinityChange.DataProvider
-  alias InfinityChange.Constants, as: Const
 
   @doc """
   Generates a possibility map from a given integer
