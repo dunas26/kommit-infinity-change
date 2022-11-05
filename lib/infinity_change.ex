@@ -1,9 +1,4 @@
 defmodule InfinityChange do
-  alias InfinityChange.Generation
-  alias InfinityChange.DataProvider
-  alias InfinityChange.Merging
-  alias InfinityChange.Compose
-
   @moduledoc """
   # InfinityChange Documentation
 
@@ -86,6 +81,11 @@ defmodule InfinityChange do
     ```
     and so on.
   """
+
+  alias InfinityChange.Generation
+  alias InfinityChange.DataProvider
+  alias InfinityChange.Merging
+  alias InfinityChange.Compose
 
   @doc """
   This function generate a coin change array an then outputs the result to the STDIN

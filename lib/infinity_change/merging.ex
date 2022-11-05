@@ -1,4 +1,6 @@
 defmodule InfinityChange.Merging do
+  @moduledoc false
+
   alias InfinityChange.DataProvider
 
   @doc """

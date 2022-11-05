@@ -1,4 +1,6 @@
 defmodule InfinityChange.Debugging do
+  @moduledoc false
+
   @doc """
     Short function that simply prints out a value and puts a label
   """

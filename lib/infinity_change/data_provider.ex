@@ -1,11 +1,13 @@
 defmodule InfinityChange.DataProvider do
+  @moduledoc false
+
   alias InfinityChange.Constants, as: Const
 
   @doc """
     Retrieves all defined coins
   """
-  @spec get_coins() :: list()
-  def get_coins(), do: Const.get_coins()
+  @spec get_coins :: list()
+  def get_coins, do: Const.get_coins()
 
   @doc """
     Return all coins that are lower than our given coin.

@@ -1,4 +1,6 @@
 defmodule InfinityChange.Compose do
+  @moduledoc false
+
   import InfinityChange.Merging, only: [is_base: 1, is_possibility: 1, merge: 1, merge: 2]
   import InfinityChange.DataProvider, only: [get_coin_variety: 1]
 
@@ -11,7 +13,6 @@ defmodule InfinityChange.Compose do
 
   defp compose([], _), do: []
   defp compose(number, _) when is_number(number), do: number
-
   defp compose(list, coin_variety) when is_base(list) and coin_variety <= 2, do: list
 
   defp compose(list, _coin_variety) when is_base(list) do
@@ -20,8 +21,9 @@ defmodule InfinityChange.Compose do
   end
 
   defp compose([single_element], coin_variety)
-       when coin_variety <= 2 and is_possibility([single_element]),
-       do: [single_element]
+       when coin_variety <= 2 and is_possibility([single_element]) do
+    [single_element]
+  end
 
   defp compose([head | tail], 3) when is_number(head), do: [head | tail]
 
