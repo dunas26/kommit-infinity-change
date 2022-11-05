@@ -2,6 +2,34 @@ defmodule InfinityChange.Generation do
   alias InfinityChange.DataProvider
   alias InfinityChange.Constants, as: Const
 
+  @doc """
+  Generates a possibility map from a given integer
+  """
+  @spec map_possibilities(integer()) :: list()
+  def map_possibilities(change) do
+    generate_possibilities(change) |> chunk_by_initial_isolated
+  end
+
+  @doc """
+  Generate a set of same coins that add up to the final change
+
+  ## Example
+    iex> InfinityChange.Generation.generate_periodical_coins(50)
+    [
+      [25,25],
+      [10,10,10,10,10],
+      [5,5,5,5,5,5,5,5,5,5],
+      [1,1,...1]
+    ]
+  """
+  @spec generate_periodical_coins(integer()) :: list()
+  def generate_periodical_coins(change) when change <= 0, do: []
+
+  def generate_periodical_coins(change) do
+    coins = DataProvider.get_lower_coins(change, ignore_equal: true)
+    recurse_periodic_coins(change, strip_lowest_coin(coins))
+  end
+
   @spec recurse_possibility(list(), boolean()) :: list()
   defp recurse_possibility([], _), do: []
   defp recurse_possibility(list, false) when is_list(list), do: list
@@ -87,26 +115,6 @@ defmodule InfinityChange.Generation do
 
   defp strip_lowest_coin([_h | t]), do: t
 
-  @doc """
-  Generate a set of same coins that add up to the final change
-
-  ## Example
-    iex> InfinityChange.Generation.generate_periodical_coins(50)
-    [
-      [25,25],
-      [10,10,10,10,10],
-      [5,5,5,5,5,5,5,5,5,5],
-      [1,1,...1]
-    ]
-  """
-  @spec generate_periodical_coins(integer()) :: list()
-  def generate_periodical_coins(change) when change <= 0, do: []
-
-  def generate_periodical_coins(change) do
-    coins = DataProvider.get_lower_coins(change, ignore_equal: true)
-    recurse_periodic_coins(change, strip_lowest_coin(coins))
-  end
-
   @spec recurse_periodic_coins(integer(), list()) :: list()
   defp recurse_periodic_coins(change, _) when change <= 0, do: []
   defp recurse_periodic_coins(_, []), do: []
@@ -131,13 +139,5 @@ defmodule InfinityChange.Generation do
 
   defp generate_coins_gate(coin, times, _should) do
     generate_coins(coin, times)
-  end
-
-  @doc """
-  Generates a possibility map from a given integer
-  """
-  @spec map_possibilities(integer()) :: list()
-  def map_possibilities(change) do
-    generate_possibilities(change) |> chunk_by_initial_isolated
   end
 end

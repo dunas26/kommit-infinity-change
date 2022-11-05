@@ -8,7 +8,7 @@ defmodule InfinityChange.Merging do
     - Is a list
     - Has any length
   """
-  defguard is_possibility(l) when is_list(l)
+  defguard is_possibility(list) when is_list(list)
 
   @doc """
     Is the input a base?
@@ -18,7 +18,7 @@ defmodule InfinityChange.Merging do
     - Has a length of 2
     - It's first element is an integer
   """
-  defguard is_base(l) when length(l) == 2 and is_number(hd(l))
+  defguard is_base(list) when length(list) == 2 and is_number(hd(list))
 
   @doc """
     Parses a possibility map into a combinable state.
@@ -27,27 +27,27 @@ defmodule InfinityChange.Merging do
   def parse(list, 2) when is_base(list), do: list
 
   def parse(list, 3) when is_base(list) do
-    [b, p] = list
-    [b | merge(p)]
+    [base, possibility] = list
+    [base | merge(possibility)]
   end
 
   def parse(list, _coin_variety) when is_base(list) do
-    [b, p] = list
-    [b, parse(p, DataProvider.get_coin_variety(p))]
+    [base, possibility] = list
+    [base, parse(possibility, DataProvider.get_coin_variety(possibility))]
   end
 
   def parse(list, coin_variety) when coin_variety <= 1 and is_possibility(list), do: list
 
   def parse(list, _coin_variety) when is_possibility(list) do
-    [h | t] = list
-    hv = DataProvider.get_coin_variety(h)
-    tv = DataProvider.get_coin_variety(t)
-    [parse(h, hv) | parse(t, tv)]
+    [head | tail] = list
+    head_variety = DataProvider.get_coin_variety(head)
+    tail_variety = DataProvider.get_coin_variety(tail)
+    [parse(head, head_variety) | parse(tail, tail_variety)]
   end
 
   def parse([], _), do: []
 
-  def parse(n, coin_variety) when coin_variety <= 1, do: n
+  def parse(number, coin_variety) when coin_variety <= 1, do: number
 
   @doc """
     Merges a list of list into a single list that contains all possibilities between all of the inputted lists
@@ -56,17 +56,24 @@ defmodule InfinityChange.Merging do
   def merge(list) when length(list) <= 1, do: list
 
   def merge(list) when length(list) == 2 do
-    [x, y] = list
-    merge(x, y) |> Enum.uniq()
+    [first, second] = list
+    merge_result = merge(first, second)
+    Enum.uniq(merge_result)
   end
 
   def merge(list) when length(list) > 2 do
-    [h | t] = list
-    merge(h, merge(t)) |> Enum.uniq()
+    [head | tail] = list
+    merge_result = merge(head, merge(tail))
+    Enum.uniq(merge_result)
   end
 
   @spec merge(list(), list()) :: list()
-  def merge(a, b) do
-    for x <- a, y <- b, do: [x, y] |> List.flatten() |> Enum.sort()
+  def merge(first_src, second_src) do
+    for first <- first_src,
+        second <- second_src,
+        do:
+          [first, second]
+          |> List.flatten()
+          |> Enum.sort()
   end
 end

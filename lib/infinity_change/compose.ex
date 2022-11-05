@@ -10,29 +10,31 @@ defmodule InfinityChange.Compose do
   end
 
   defp compose([], _), do: []
-  defp compose(n, _) when is_number(n), do: n
+  defp compose(number, _) when is_number(number), do: number
 
   defp compose(list, coin_variety) when is_base(list) and coin_variety <= 2, do: list
 
   defp compose(list, _coin_variety) when is_base(list) do
-    [b, p] = list
-    [b | compose(p, get_coin_variety(p))]
+    [base, possibilities] = list
+    [base | compose(possibilities, get_coin_variety(possibilities))]
   end
 
-  defp compose([a], coin_variety) when coin_variety <= 2 and is_possibility([a]), do: [a]
+  defp compose([single_element], coin_variety)
+       when coin_variety <= 2 and is_possibility([single_element]),
+       do: [single_element]
 
-  defp compose([h | t], 3) when is_number(h), do: [h | t]
+  defp compose([head | tail], 3) when is_number(head), do: [head | tail]
 
   defp compose(list, 3) when is_possibility(list) do
     merge(list)
   end
 
-  defp compose([a, b], _coin_Variety) when is_possibility([a, b]) do
-    merge(compose(a, get_coin_variety(a)), compose(b, get_coin_variety(b)))
+  defp compose([first, second], _coin_Variety) when is_possibility([first, second]) do
+    merge(compose(first, get_coin_variety(first)), compose(second, get_coin_variety(second)))
   end
 
   defp compose(list, _coin_variety) when is_possibility(list) do
-    [h | t] = list
-    merge(compose(h, get_coin_variety(h)), compose(t, get_coin_variety(t)))
+    [head | tail] = list
+    merge(compose(head, get_coin_variety(head)), compose(tail, get_coin_variety(tail)))
   end
 end

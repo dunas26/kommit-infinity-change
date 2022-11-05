@@ -87,20 +87,8 @@ defmodule InfinityChange do
     and so on.
   """
 
-  @spec try_join(list()) :: String.t()
-  defp try_join(list) when is_list(list) do
-    Enum.join(list, ", ")
-  end
-
-  defp try_join(x), do: "#{x}"
-
-  @spec present_results(integer(), list()) :: term()
-  defp present_results(_change, list) do
-    Enum.each(list, &IO.puts(try_join(&1)))
-  end
-
   @doc """
-  This function generate a coin change an then outputs to the STDIN
+  This function generate a coin change array an then outputs the result to the STDIN
   """
   @spec present_coin_change(integer()) :: term()
   def present_coin_change(change) do
@@ -108,14 +96,20 @@ defmodule InfinityChange do
     present_results(change, coin_change)
   end
 
-  @spec try_flatten(list() | number()) :: list()
-  defp try_flatten(n) when is_number(n), do: n
-  defp try_flatten(list) when is_list(list), do: List.flatten(list)
-
   @doc """
   Computes any coin change into a resulting array.
 
   It accepts any possitive integer.
+
+  ## Examples
+  ```
+  iex> compute_coin_change(1)
+  [1]
+  iex> compute_coin_change(5)
+  [[5], [1,1,1,1,1]]
+  iex> compute_coin_change(10)
+  [[10], [5,5], [5,1,1,1,1,1], [1,1,1,1,1,1,1,1,1,1]]
+  ```
   """
   @spec compute_coin_change(integer()) :: [[integer()]]
   def compute_coin_change(change) when change <= 0, do: []
@@ -144,5 +138,21 @@ defmodule InfinityChange do
     if DataProvider.in_coins?(change) and not DataProvider.is_lowest_coin?(change),
       do: [[change] | final_state],
       else: final_state
+  end
+
+  @spec try_flatten(list() | number()) :: list()
+  defp try_flatten(number) when is_number(number), do: number
+  defp try_flatten(list) when is_list(list), do: List.flatten(list)
+
+  @spec try_join(list()) :: String.t()
+  defp try_join(list) when is_list(list) do
+    Enum.join(list, ", ")
+  end
+
+  defp try_join(value), do: "#{value}"
+
+  @spec present_results(integer(), list()) :: term()
+  defp present_results(_change, list) do
+    Enum.each(list, &IO.puts(try_join(&1)))
   end
 end
